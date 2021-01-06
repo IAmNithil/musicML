@@ -1,17 +1,21 @@
 import os
 from flask import Flask, request, render_template, redirect, flash, url_for
+from flask import send_from_directory
 from werkzeug.utils import secure_filename
 
 import librosa,matplotlib.pyplot as plt
 import IPython.display as ipd
+from findgenre import findg
 
 
 app = Flask(__name__)
 UPLOAD_FOLDER = './tmp'
+UPLOAD_FOLDERB = './templates'
 ALLOWED_EXTENSIONS = {'wav', 'mp3', 'jpg'}
 
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['UPLOAD_FOLDERB'] = UPLOAD_FOLDERB
 
 
 def allowed_file(filename):
@@ -45,6 +49,7 @@ def upload_file_check():
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            file.save(os.path.join(app.config['UPLOAD_FOLDERB'], filename))
             return redirect(url_for('uploaded_file',
                                     filename=filename))
     return '''
@@ -85,7 +90,48 @@ def upload_file():
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            return redirect(url_for('uploaded_file', filename=filename))
+            file.save(os.path.join(app.config['UPLOAD_FOLDERB'], filename))
+            #file.save(os.path.join(app.config['UPLOAD_FOLDER'], 'abc.wav'))
+            source = UPLOAD_FOLDER + "/" + filename
+            destination = UPLOAD_FOLDER + "/" + "abc.wav"
+            os.rename(source, destination)
+            sourceb = UPLOAD_FOLDERB + "/" + filename
+            destinationb = UPLOAD_FOLDERB + "/" + "abc.wav"
+            os.rename(sourceb, destinationb)
+            # return redirect(url_for('uploaded_file', filename='abc.wav'))
+            genre = findg()
+            print(genre)
+            return redirect(url_for('result', filename=filename, genre=genre))
+
+@app.route('/result/<string:filename>/<int:genre>')
+def result(filename, genre):
+    if genre == 0:
+        genre = 'Blues'
+    elif genre == 1:
+        genre = 'Classical'
+    elif genre == 2:
+        genre = 'Country'
+    elif genre == 3:
+        genre = 'Disco'
+    elif genre == 4:
+        genre = 'Hiphop'
+    elif genre == 5:
+        genre = 'Jazz'
+    elif genre == 6:
+        genre = 'Metal'
+    elif genre == 7:
+        genre = 'Pop'
+    elif genre == 8:
+        genre = 'Reggae'
+    elif genre == 9:
+        genre = 'Rock'
+    return render_template('result.html', filename=filename, genre=genre)
+
+
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'],
+                               filename)
 
 
 if __name__ == '__main__':
