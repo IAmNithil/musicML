@@ -10,7 +10,7 @@ from findgenre import findg
 
 app = Flask(__name__)
 UPLOAD_FOLDER = './tmp'
-UPLOAD_FOLDERB = './templates'
+UPLOAD_FOLDERB = './static/audio'
 ALLOWED_EXTENSIONS = {'wav', 'mp3', 'jpg'}
 
 
@@ -78,6 +78,11 @@ def test():
 def upload_file():
     if request.method == 'POST':
         # check if the post request has the file part
+        if os.path.exists("tmp/abc.wav"):
+            os.remove("tmp/abc.wav")
+        if os.path.exists("static/audio/abc.wav"):
+            os.remove("static/audio/abc.wav")
+
         if 'file' not in request.files:
             flash('No file part')
             return redirect(url_for('home'))
